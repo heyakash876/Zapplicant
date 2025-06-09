@@ -15,6 +15,7 @@ export default function JobApplyPage() {
   const [score, setScore] = useState(null);
   const [showScore, setShowScore] = useState(false);
   const [applicantName, setApplicantName] = useState("");
+  const [resumeText, setResumeText] = useState(""); // add this line
 
   useEffect(() => {
     if (!job) {
@@ -86,7 +87,8 @@ export default function JobApplyPage() {
       alert("Could not extract text from this file type.");
       return;
     }
-    const resumeText = text.toLowerCase();
+    setResumeText(text); // save for interview
+    const resumeTextLower = text.toLowerCase();
     const jobText = (job.jobDesc || "").toLowerCase();
 
     const stopwords = [
@@ -102,7 +104,7 @@ export default function JobApplyPage() {
     );
     let matched = 0;
     jobKeywords.forEach(kw => {
-      if (resumeText.includes(kw)) matched++;
+      if (resumeTextLower.includes(kw)) matched++;
     });
     const score = jobKeywords.length === 0 ? 0 : Math.round((matched / jobKeywords.length) * 100);
 
@@ -132,12 +134,22 @@ export default function JobApplyPage() {
             <span className="font-bold text-primary-light text-lg mb-2">ATS Score</span>
             <span className="text-3xl font-extrabold text-green-400 mb-1">{score}%</span>
             <span className="text-gray-300 text-sm mb-4">Your resume matches {score}% of the job description keywords.</span>
-            <button
-              className="mt-2 bg-primary text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-primary-dark transition"
-              onClick={() => navigate("/interview")}
-            >
-              Practice Small Interview
-            </button>
+            {score >= 75 && (
+              <button
+                className="mt-2 bg-primary text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-primary-dark transition"
+                onClick={() => navigate("/interview", {
+                  state: {
+                    job,
+                    resumeText,
+                  }
+                })}
+              >
+                Practice Small Interview
+              </button>
+            )}
+            {score < 75 && (
+              <span className="text-xs text-red-400 mt-2">Score must be 75% to unlock interview.</span>
+            )}
           </div>
         </div>
       )}
